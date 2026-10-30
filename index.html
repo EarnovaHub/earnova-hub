@@ -64,6 +64,52 @@ const supabaseClient = window.supabase.createClient(
 );
 </script> 
  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+ <script>
+async function verifyTelegramUser() {
+  const status = document.createElement("p");
+  status.textContent = "Checking Telegram account...";
+  document.body.prepend(status);
+
+  const tg = window.Telegram?.WebApp;
+
+  if (!tg || !tg.initData) {
+    status.textContent = "Please open Earnova Hub inside Telegram.";
+    return;
+  }
+
+  tg.ready();
+
+  try {
+    const response = await fetch(
+      SUPABASE_URL + "/functions/v1/bright-service",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_KEY
+        },
+        body: JSON.stringify({
+          initData: tg.initData
+        })
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.verified) {
+      throw new Error(result.error || "Verification failed");
+    }
+
+    const username = result.user.username;
+    status.textContent = "Welcome to Earnova Hub" +
+      (username ? ", @" + username : "!");
+  } catch (error) {
+    status.textContent = "Verification failed. Please try again.";
+  }
+}
+
+verifyTelegramUser();
+ </script>
 </body>
   </html>
   
