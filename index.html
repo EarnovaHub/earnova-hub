@@ -1,117 +1,160 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Earnova Hub</title>
+
 <style>
 *{box-sizing:border-box}
 body{
- margin:0;background:#0b1220;color:white;
- font-family:Arial,sans-serif;padding:20px;
+ margin:0;
+ background:#0b1220;
+ color:white;
+ font-family:Arial,sans-serif;
+ padding:20px;
 }
 header{text-align:center;padding:20px 0}
 h1{color:#e9b949;font-size:30px}
 p{color:#b8c3d6}
 .balance{
  background:linear-gradient(135deg,#173b67,#17243c);
- padding:24px;border-radius:18px;margin:20px 0;
+ padding:24px;
+ border-radius:18px;
+ margin:20px 0;
 }
 .balance h2{color:#e9b949}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:12px;
+}
 .item{
- background:#18263b;padding:22px 10px;
- border-radius:15px;text-align:center;
+ background:#18263b;
+ padding:22px 10px;
+ border-radius:15px;
+ text-align:center;
  border:1px solid #293c55;
+ cursor:pointer;
 }
 .item span{font-size:25px}
 .item h3{font-size:15px}
-button{
- background:#e9b949;color:#101827;border:0;
- padding:13px;border-radius:10px;font-weight:bold;
- width:100%;margin-top:15px;
+#task-list{
+ margin-top:20px;
 }
-footer{text-align:center;margin-top:30px;color:#8b9ab0}
+.task-card{
+ background:#18263b;
+ padding:16px;
+ border-radius:12px;
+ margin-bottom:12px;
+ border:1px solid #293c55;
+}
+.task-card h3{color:#e9b949}
+footer{
+ text-align:center;
+ margin-top:30px;
+ color:#8b9ab0;
+}
 </style>
 </head>
+
 <body>
+
 <header>
 <h1>Earnova Hub</h1>
 <p>Work • Earn • Grow</p>
 </header>
+
 <div class="balance">
 <p>MY BALANCE</p>
-<h2>$0.00 USD</h2>
+<h2>0 Demo Points</h2>
 <p>Welcome to Earnova Hub!</p>
 </div>
+
 <div class="grid">
+
 <div class="item" onclick="loadAvailableTasks()">
-  <span>📋</span>
-  <h3>Available Tasks</h3>
+<span>📋</span>
+<h3>Available Tasks</h3>
 </div>
+
 <div class="item"><span>📝</span><h3>Submit Task</h3></div>
 <div class="item"><span>👥</span><h3>Referral</h3></div>
 <div class="item"><span>💳</span><h3>Withdraw</h3></div>
 <div class="item"><span>📜</span><h3>History</h3></div>
 <div class="item"><span>👤</span><h3>My Account</h3></div>
+
 </div>
-<footer>© 2026 Earnova Hub</footer><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<div id="task-list"></div>
+
+<footer>© 2026 Earnova Hub</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 const SUPABASE_URL = "https://zysjyixmlipyatzebcvi.supabase.co";
-const SUPABASE_KEY = "sb_publishable_AGwkkd7CH9EDYYLlCnWSMw_3GcyW5RD";
+const SUPABASE_KEY = "YOUR_SUPABASE_PUBLISHABLE_KEY";
 
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
 );
-</script> 
- <script src="https://telegram.org/js/telegram-web-app.js"></script>
- <script>
+
+async function loadAvailableTasks() {
+  const box = document.getElementById("task-list");
+
+  box.innerHTML = "<h2>📋 Available Tasks</h2><p>Loading...</p>";
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("tasks")
+      .select("id, title, description, reward, category, instructions")
+      .eq("status", "active")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      box.textContent = "Database Error: " + error.message;
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      box.innerHTML = "<h2>📋 Available Tasks</h2><p>No active tasks available.</p>";
+      return;
+    }
+
+    box.innerHTML = "<h2>📋 Available Tasks</h2>";
+
+    data.forEach(task => {
+      const card = document.createElement("div");
+      card.className = "task-card";
+
+      const title = document.createElement("h3");
+      title.textContent = task.title;
+
+      const description = document.createElement("p");
+      description.textContent = task.description || "";
+
+      const category = document.createElement("p");
+      category.textContent = "Category: " + (task.category || "General");
+
+      const reward = document.createElement("p");
+      reward.textContent = "Reward: " + task.reward + " Demo Points";
+
+      card.append(title, description, category, reward);
+      box.appendChild(card);
+    });
+
+  } catch (err) {
+    box.textContent = "Error: " + err.message;
+  }
+}
+</script>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<script>
 async function verifyTelegramUser() {
- async function loadAvailableTasks() {
-  let box = document.getElementById("task-list");
-
-  if (!box) {
-    box = document.createElement("div");
-    box.id = "task-list";
-    document.body.appendChild(box);
-  }
-
-  box.innerHTML = "<h2>📋 Available Tasks</h2><p>Loading tasks...</p>";
-
-  const { data, error } = await supabaseClient
-    .from("tasks")
-    .select("id, title, description, reward, category, instructions")
-    .eq("status", "active")
-    .order("created_at", { ascending: false });
-
-  box.innerHTML = "<h2>📋 Available Tasks</h2>";
-
-  if (error) {
-    box.textContent = "Tasks could not load. Please try again.";
-    return;
-  }
-
-  if (!data || data.length === 0) {
-    box.textContent = "No active tasks available.";
-    return;
-  }
-
-  data.forEach(task => {
-    const card = document.createElement("div");
-    const title = document.createElement("h3");
-    const description = document.createElement("p");
-    const reward = document.createElement("p");
-
-    title.textContent = task.title;
-    description.textContent = task.description || "";
-    reward.textContent = "Reward: " + task.reward + " Demo Points";
-
-    card.append(title, description, reward);
-    box.appendChild(card);
-  });
-  }
   const status = document.createElement("p");
   status.textContent = "Checking Telegram account...";
   document.body.prepend(status);
@@ -147,15 +190,17 @@ async function verifyTelegramUser() {
     }
 
     const username = result.user.username;
+
     status.textContent = "Welcome to Earnova Hub" +
       (username ? ", @" + username : "!");
+
   } catch (error) {
-  status.textContent = "Verification failed: " + error.message;
+    status.textContent = "Verification failed: " + error.message;
   }
 }
 
 verifyTelegramUser();
- </script>
+</script>
+
 </body>
-  </html>
-  
+ </html>
