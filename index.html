@@ -157,7 +157,43 @@ async function loadAvailableTasks() {
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-<script>
+<script>async function openSubmitTask() {
+  const box = document.getElementById("submit-form");
+
+  box.innerHTML = "<h2>📝 Submit Task</h2><p>Loading tasks...</p>";
+
+  const { data, error } = await supabaseClient
+    .from("tasks")
+    .select("id, title")
+    .eq("status", "active");
+
+  if (error) {
+    box.textContent = "Could not load tasks: " + error.message;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    box.innerHTML = "<p>No active tasks available.</p>";
+    return;
+  }
+
+  box.innerHTML = `
+    <h2>📝 Submit Task</h2>
+    <label>Select Task</label>
+    <select id="submit-task">
+      ${data.map(task =>
+        `<option value="${task.id}">${task.title}</option>`
+      ).join("")}
+    </select>
+
+    <p>Proof Link</p>
+    <input id="proof-link" type="url"
+      placeholder="Paste your proof link here">
+
+    <button onclick="sendTaskSubmission()">Submit</button>
+    <p id="submit-message"></p>
+  `;
+}
 async function verifyTelegramUser() {
   const status = document.createElement("p");
   status.textContent = "Checking Telegram account...";
