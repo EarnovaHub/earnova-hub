@@ -46,7 +46,10 @@ footer{text-align:center;margin-top:30px;color:#8b9ab0}
 <p>Welcome to Earnova Hub!</p>
 </div>
 <div class="grid">
-<div class="item"><span>📋</span><h3>Available Tasks</h3></div>
+<div class="item" onclick="loadAvailableTasks()">
+  <span>📋</span>
+  <h3>Available Tasks</h3>
+</div>
 <div class="item"><span>📝</span><h3>Submit Task</h3></div>
 <div class="item"><span>👥</span><h3>Referral</h3></div>
 <div class="item"><span>💳</span><h3>Withdraw</h3></div>
@@ -66,6 +69,49 @@ const supabaseClient = window.supabase.createClient(
  <script src="https://telegram.org/js/telegram-web-app.js"></script>
  <script>
 async function verifyTelegramUser() {
+ async function loadAvailableTasks() {
+  let box = document.getElementById("task-list");
+
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "task-list";
+    document.body.appendChild(box);
+  }
+
+  box.innerHTML = "<h2>📋 Available Tasks</h2><p>Loading tasks...</p>";
+
+  const { data, error } = await supabaseClient
+    .from("tasks")
+    .select("id, title, description, reward, category, instructions")
+    .eq("status", "active")
+    .order("created_at", { ascending: false });
+
+  box.innerHTML = "<h2>📋 Available Tasks</h2>";
+
+  if (error) {
+    box.textContent = "Tasks could not load. Please try again.";
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    box.textContent = "No active tasks available.";
+    return;
+  }
+
+  data.forEach(task => {
+    const card = document.createElement("div");
+    const title = document.createElement("h3");
+    const description = document.createElement("p");
+    const reward = document.createElement("p");
+
+    title.textContent = task.title;
+    description.textContent = task.description || "";
+    reward.textContent = "Reward: " + task.reward + " Demo Points";
+
+    card.append(title, description, reward);
+    box.appendChild(card);
+  });
+  }
   const status = document.createElement("p");
   status.textContent = "Checking Telegram account...";
   document.body.prepend(status);
