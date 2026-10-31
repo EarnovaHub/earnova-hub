@@ -104,7 +104,7 @@ async function verifyTelegramUser() {
     status.textContent = "Welcome to Earnova Hub" +
       (username ? ", @" + username : "!");
   } catch (error) {
-    status.textContent = "Verification failed. Please try again.";
+  status.textContent = "Verification failed: " + error.message;
   }
 }
 
